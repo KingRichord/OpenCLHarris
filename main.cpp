@@ -118,7 +118,8 @@ int main() {
 
 	std::cout << "Hello, World!" << std::endl;
     boost::compute::device gpu = boost::compute::system::default_device();
-    boost::compute::context context(gpu);
+	std::cout <<gpu.name() <<std::endl;
+	boost::compute::context context(gpu);
     boost::compute::command_queue queue(context, gpu);
     boost::compute::program filter_program =
             boost::compute::program::create_with_source(source, context);
@@ -202,7 +203,7 @@ int main() {
 	diffx_kernel.set_arg(0, input_image);
 	diffx_kernel.set_arg(1, diffx);
     queue.enqueue_nd_range_kernel(diffx_kernel, 2, origin, region, 0);
-	
+	boost::compute::opencv_imshow("diffx_kernel Image", diffx, queue);
 	diffy_kernel.set_arg(0, input_image);
 	diffy_kernel.set_arg(1, diffy);
 	queue.enqueue_nd_range_kernel(diffy_kernel, 2, origin, region, 0);
