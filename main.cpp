@@ -35,8 +35,7 @@ const char source[] = BOOST_COMPUTE_STRINGIZE_SOURCE (
 			int i = 0;
 			for (int y = -half_smoothing; y <= half_smoothing; ++y) {
 				for (int x = -half_smoothing; x <= half_smoothing; ++x) {
-					sum += filterWeights[i] * read_imagef(src, reflect_sampler, pos + (int2)(x,y));
-					++i;
+					sum += filterWeights[i++] * read_imagef(src, reflect_sampler, pos + (int2)(x,y));
 				}
 			}
 			write_imagef(dest, pos, sum);
@@ -104,17 +103,15 @@ const char source[] = BOOST_COMPUTE_STRINGIZE_SOURCE (
 
 int main() {
 	
-	float min_th = 1 ;
+	float min_th = 1000. ;  //最大响应值阈值
 	float num_radius = 5;
-	//Filter Variables
+
 	float filter[9] =  {
 			0.05,      0.1,      0.05,
 			0.1,       0.4,       0.1,
 			0.05,      0.1,      0.05,
 	};
 	
-	// The convolution filter is 3x3
-	float filterWidth = 3;
 
 	std::cout << "Hello, World!" << std::endl;
     boost::compute::device gpu = boost::compute::system::default_device();
@@ -146,8 +143,8 @@ int main() {
 	                                  boost::compute::memory_object::copy_host_ptr,filter);
 	size_t steps = input.cols* input.rows;
 	std::vector<boost::compute::int2_> h_output(steps);
-	boost::compute::vector<boost::compute::int2_> all_pos(steps,context);
-	boost::compute::fill(all_pos.begin(), all_pos.end(), (boost::compute::int2_)(-1), queue);
+	boost::compute::vector<boost::compute::int2_> all_corner_pos(steps, context);
+	boost::compute::fill(all_corner_pos.begin(), all_corner_pos.end(), (boost::compute::int2_)(-1), queue);
 	// 将图像数据转换到GPU中
     boost::compute::image2d input_image =
             boost::compute::opencv_create_image2d_with_mat(
@@ -193,13 +190,7 @@ int main() {
 	size_t origin[2] = { 0, 0 };
 	size_t region[2] = { input_image.width(),
 	                     input_image.height() };
-	// smooth_kernel.set_arg(0,input_image);
-	// smooth_kernel.set_arg(1,dev_filter);
-	// smooth_kernel.set_arg(2,filterWidth);
-	// smooth_kernel.set_arg(3,smoothing_image);
-	// queue.enqueue_nd_range_kernel(smooth_kernel, 2, origin, region, 0);
-	// //boost::compute::opencv_imshow("smooth_kernel Image", smoothing_image, queue);
-
+	
 	diffx_kernel.set_arg(0, input_image);
 	diffx_kernel.set_arg(1, diffx);
     queue.enqueue_nd_range_kernel(diffx_kernel, 2, origin, region, 0);
@@ -219,14 +210,14 @@ int main() {
 	 nms_kernel.set_arg(1, min_th);
 	 nms_kernel.set_arg(2, num_radius);
 	 nms_kernel.set_arg(3, nms_image);
-	 nms_kernel.set_arg(4, all_pos.get_buffer());
+	 nms_kernel.set_arg(4, all_corner_pos.get_buffer());
 	 queue.enqueue_nd_range_kernel(nms_kernel, 2, origin, region, 0);
-	 boost::compute::copy(all_pos.begin(), all_pos.end(), h_output.begin(), queue);
+	 boost::compute::copy(all_corner_pos.begin(), all_corner_pos.end(), h_output.begin(), queue);
 	cv::Mat result;
 	cv::cvtColor(cv_mat, result, cv::COLOR_GRAY2RGB);
 	for (auto & i : h_output) {
 		if(i.x != -1||i.y != -1)
-			circle(result, cv::Point2i (i.x,i.y), 3, cv::Scalar(0, 0, 255), -1);
+			circle(result, cv::Point2i (i.x,i.y), 4, cv::Scalar(0, 0, 255), 1);
 	}
 	cv::imshow("positions", result);
 	// boost::compute::opencv_imshow("nms_image Image", nms_image, queue);
