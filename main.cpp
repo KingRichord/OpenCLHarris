@@ -194,7 +194,7 @@ int main() {
 	diffx_kernel.set_arg(0, input_image);
 	diffx_kernel.set_arg(1, diffx);
     queue.enqueue_nd_range_kernel(diffx_kernel, 2, origin, region, 0);
-	boost::compute::opencv_imshow("diffx_kernel Image", diffx, queue);
+	// boost::compute::opencv_imshow("diffx_kernel Image", diffx, queue);
 	diffy_kernel.set_arg(0, input_image);
 	diffy_kernel.set_arg(1, diffy);
 	queue.enqueue_nd_range_kernel(diffy_kernel, 2, origin, region, 0);
@@ -204,7 +204,7 @@ int main() {
 	struct_kernel.set_arg(2, dev_filter);
 	struct_kernel.set_arg(3, structure_image);
 	queue.enqueue_nd_range_kernel(struct_kernel, 2, origin, region, 0);
-	boost::compute::opencv_imshow("structure_image Image", structure_image, queue);
+	// boost::compute::opencv_imshow("structure_image Image", structure_image, queue);
 
 	 nms_kernel.set_arg(0, structure_image);
 	 nms_kernel.set_arg(1, min_th);

@@ -7,6 +7,6 @@ include_directories("${PROJECT_SOURCE_DIR}/OpenCL") # 这里直接将路径，�
 find_package(OpenCL REQUIRED)
 SET(OpenCV_DIR "/home/moi/APP/include/opencv/lib/cmake/opencv4")
 find_package(OpenCV REQUIRED)
-add_executable(opencl_harris_test main.cpp)
-target_include_directories(opencl_harris_test PUBLIC ${OpenCL_INCLUDE_DIRS})
+add_executable(opencl_harris_test main.cpp Harris_cl.cpp Featuredetectors.cpp)
+target_include_directories(opencl_harris_test PUBLIC ${OpenCL_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(opencl_harris_test     ${OpenCL_LIBRARY}     ${OpenCV_LIBRARIES} )
